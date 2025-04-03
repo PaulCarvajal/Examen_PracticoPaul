@@ -15,7 +15,8 @@
             "type": "string"
         },
         "Price": {
-            "type": "decimal"
+            "type": "decimal",
+            "min": 0
         },
         "Photo": {
             "type": "media",

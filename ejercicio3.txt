@@ -1,0 +1,6 @@
+API MEJORADA
+Obtener solo los postres dentro de los menús 
+http://localhost:1337/api/dailymenus?fields[0]=Day&populate[dessert][fields][1]=Name
+
+Filtrar menús por rango de precios
+http://localhost:1337/api/dailymenus?filters[Price][$gte]=10&filters[Price][$lte]=20&sort=Price

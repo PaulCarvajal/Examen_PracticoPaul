@@ -393,7 +393,22 @@ export interface ApiDailymenuDailymenu extends Struct.CollectionTypeSchema {
       'api::dailymenu.dailymenu'
     > &
       Schema.Attribute.Private;
-    Price: Schema.Attribute.Decimal;
+    Price: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<1>;
+    PriceWithTaxes: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
     publishedAt: Schema.Attribute.DateTime;
     second: Schema.Attribute.Relation<'oneToOne', 'api::dish.dish'>;
     SumPrecio: Schema.Attribute.Decimal;
@@ -424,7 +439,13 @@ export interface ApiDishDish extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     Name: Schema.Attribute.String;
     Photo: Schema.Attribute.Media<'images'>;
-    Price: Schema.Attribute.Decimal;
+    Price: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
     publishedAt: Schema.Attribute.DateTime;
     Type: Schema.Attribute.Enumeration<['First', 'Second', 'Dessert']>;
     updatedAt: Schema.Attribute.DateTime;

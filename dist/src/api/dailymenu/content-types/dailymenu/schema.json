@@ -30,10 +30,17 @@
             "target": "api::dish.dish"
         },
         "Price": {
-            "type": "decimal"
+            "type": "decimal",
+            "min": 1,
+            "default": 1,
+            "required": true
         },
         "SumPrecio": {
             "type": "decimal"
+        },
+        "PriceWithTaxes": {
+            "type": "decimal",
+            "min": 0
         }
     }
 }

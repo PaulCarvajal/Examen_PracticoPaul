@@ -1,26 +1,17 @@
+const API_DAILY = "api::dailymenu.dailymenu";
+const API_DISH = "api::dish.dish";
+
+
+import {} from '../../../../utils/utils.ts';  // Omite la extensión `.ts`
+
 module.exports = {
-    async afterUpdate(event){
-        console.log(event)
-        const {params, result, } = event
-        const {data} = params
+  async afterUpdate(event) {
+    utils.auxiliar_function(event)
+  },
 
-        console.log("DATA: ")
-        console.log(data)
+  async afterCreate(event){
+    utils.auxiliar_function(event)
+  },
 
-        console.log("PARAMS: ")
-        console.log(params)
-
-        console.log("RESULT: ")
-        console.log(result)
-
-        const API_CONT = 'api::dailymenu.dailymenu'
-        const firstPlate = await strapi.db.query(API_CONT).findMany({
-            where: {Day: data.Day},
-            populate: { first: true },
-          });
-
-        console.log("PRIMER PLATOOOO")
-        console.log(firstPlate)
-        console.log("======================")
-    }
-}
+  
+};
