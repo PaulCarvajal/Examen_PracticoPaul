@@ -9,7 +9,7 @@ const taxes = 1.21;
 exports.default = strapi_1.factories.createCoreService(API_DAILY, () => ({
     priceDailyMenu: async function (dailymenu) {
         const { first, second, dessert } = dailymenu;
-        console.log(first);
+        //console.log(first)
         let total = 0;
         if (first != null) {
             total = total + first.Price;

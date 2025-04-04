@@ -5,13 +5,14 @@
 import { factories } from "@strapi/strapi";
 
 const API_DAILY = "api::dailymenu.dailymenu";
+
 const taxes = 1.21;
 
 export default factories.createCoreService(API_DAILY, () => ({
   priceDailyMenu: async function (dailymenu) {
     const { first, second, dessert } = dailymenu;
 
-    console.log(first)
+    //console.log(first)
     let total = 0;
     if (first != null) {
       total = total + first.Price;

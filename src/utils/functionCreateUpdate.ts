@@ -1,6 +1,8 @@
 // import type { Core } from '@strapi/strapi';
+const API_DAILY = "api::dailymenu.dailymenu";
+const API_DISH = "api::dish.dish";
 
-export default async function auxiliar_function(event) {
+export async function auxiliar_function(event) {
   const { params, result } = event;
 
   console.log("PARAMS ");
