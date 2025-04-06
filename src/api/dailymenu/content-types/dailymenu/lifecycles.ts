@@ -1,17 +1,29 @@
 //import {auxiliar_function} from '../../../../functionCreateUpdate.ts';  // Omite la extensión `.ts`
 
-import { addAbortListener } from "events";
-import { before, beforeEach } from "node:test";
+import { compileStrapi } from "@strapi/strapi";
+import { after, before, beforeEach } from "node:test";
 
 const API_DAILY = "api::dailymenu.dailymenu";
 const API_DISH = "api::dish.dish";
 
+const { errors } = require("@strapi/utils");
+const { ApplicationError } = errors;
 module.exports = {
+
+  
   async afterUpdate(event) {
     const { params, result } = event;
+    if (event.state?.isCalculatedUpdate) return;
 
-    //console.log("PARAMS ");
-    //console.log(event);
+    if (event.params.data && event.params.data.publishedAt) {
+      console.warn(
+        "Publish action detected, skipping calculated update in afterUpdate."
+      );
+      return;
+    }
+
+    console.log("PARAMS ");
+    console.log(event);
 
     const daily = await strapi.documents(API_DAILY).findOne({
       documentId: result.documentId,
@@ -21,63 +33,149 @@ module.exports = {
         dessert: true,
       },
     });
+    
+    
 
-    const { SumPrecio, documentId, PriceWithTaxes} = daily;
-
-    const total = await strapi.service(API_DAILY).priceDailyMenu(daily);
-    //console.log("PRECIO TOTAL");
-    //console.log(total);
-
-    if (SumPrecio !== total) {
-      const change = await strapi.documents(API_DAILY).update({
-        documentId: documentId,
-        data: {
-          SumPrecio: total,
-        },
-      });
+    if (!daily.first || !daily.second || !daily.dessert) {
+      console.warn(
+        "Missing dish information in menu, skipping calculated update."
+      );
+      return;
     }
 
-    const newPrice = await strapi.service(API_DAILY).includeTaxes(daily);
+    const { SumPrecio, documentId, PriceWithTaxes } = daily;
+    const sumPrice = await strapi.service(API_DAILY).priceDailyMenu(daily);
+    console.log("Después de update de TotalPriceDishes");
 
-    if (newPrice != PriceWithTaxes) {
-      const changePrice = await strapi.documents(API_DAILY).update({
-        documentId: documentId,
-        data: {
-          PriceWithTaxes: newPrice,
-        },
-      });
+    const currentPrice = SumPrecio ?? 0;
+    const calculatedPrice = sumPrice ?? 0;
+    
+    console.log("NO PUEDO MAS")
+    console.log(currentPrice)
+    console.log(calculatedPrice)
+    if (currentPrice.toFixed(2) !== calculatedPrice.toFixed(2)) {
+      try {
+        await strapi.documents(API_DAILY).update({
+          documentId,
+          data: { SumPrecio: sumPrice },
+          state: { isCalculatedUpdate: true },
+        });
+        console.log(
+          "Actualización de TotalPriceDishes completada (afterUpdate)"
+        );
+      } catch (error) {console.error("Error updating TotalPriceDishes:", error);
+      }
+    }
+
+    const price_with_taxes = await strapi.service(API_DAILY).includeTaxes(daily);
+    const currentTaxes = typeof PriceWithTaxes === "number" ? PriceWithTaxes : parseFloat(PriceWithTaxes) || 0;
+    const calculatedTaxes = typeof price_with_taxes === "number" ? price_with_taxes: parseFloat(price_with_taxes) || 0;
+
+    if (currentTaxes.toFixed(2) !== calculatedTaxes.toFixed(2)) {
+      try {
+        await strapi.documents(API_DAILY).update({
+          documentId,
+          data: { PriceWithTaxes: price_with_taxes },
+          state: { isCalculatedUpdate: true },
+        });
+        console.log("Actualización de PriceTaxes completada (afterUpdate)");
+      } catch (error) {
+        console.error("Error updating PriceTaxes:", error);
+      }
+    }
+
+
+  },
+  async beforeCreate(event) {
+    const { params } = event;
+    //console.log("event", event);
+    //console.log("params", params);
+    const validateType = await strapi.service(API_DAILY).validateType(params);
+    //console.log("validateType", validateType);
+    if (!validateType) {
+      throw new ApplicationError("This plate is not in the correct type");
     }
   },
   async beforeUpdate(event) {
-    if (event.state.isCalculatedUpdate) {
-      return; // Si es una actualización calculada, no hacemos nada
+    const { params } = event;
+
+    const validateType = await strapi.service(API_DAILY).validateType(params);
+
+    if (!validateType) {
+      throw new ApplicationError("This plate is not in the correct type");
+    }
+  },
+  async afterCreate(event){
+    const { params, result } = event;
+    if (event.state?.isCalculatedUpdate) return;
+
+    if (event.params.data && event.params.data.publishedAt) {
+      console.warn(
+        "Publish action detected, skipping calculated update in afterUpdate."
+      );
+      return;
     }
 
-    const { errors } = require("@strapi/utils");
-    const { ApplicationError } = errors;
-    const {params}= event;
-    const menu = await strapi.db.query(API_DAILY).findOne({
-      where: {
-        id: params.where.id,
-      },
-      populate:{
+    console.log("PARAMS ");
+    console.log(event);
+
+    const daily = await strapi.documents(API_DAILY).findOne({
+      documentId: result.documentId,
+      populate: {
         first: true,
         second: true,
         dessert: true,
+      },
+    });
+    
+    
+
+    if (!daily.first || !daily.second || !daily.dessert) {
+      console.warn(
+        "Missing dish information in menu, skipping calculated update."
+      );
+      return;
+    }
+
+    const { SumPrecio, documentId, PriceWithTaxes } = daily;
+    const sumPrice = await strapi.service(API_DAILY).priceDailyMenu(daily);
+    console.log("Después de update de TotalPriceDishes");
+
+    const currentPrice = SumPrecio ?? 0;
+    const calculatedPrice = sumPrice ?? 0;
+    
+    console.log("NO PUEDO MAS")
+    console.log(currentPrice)
+    console.log(calculatedPrice)
+    if (currentPrice.toFixed(2) !== calculatedPrice.toFixed(2)) {
+      try {
+        await strapi.documents(API_DAILY).update({
+          documentId,
+          data: { SumPrecio: sumPrice },
+          state: { isCalculatedUpdate: true },
+        });
+        console.log(
+          "Actualización de TotalPriceDishes completada (afterUpdate)"
+        );
+      } catch (error) {console.error("Error updating TotalPriceDishes:", error);
       }
-    })
-    const {first,second,dessert} = menu;
-   
-    if (first.id === second.id) {
-      throw new ApplicationError("El mismo plato no se puede usar como Primero y MainCourse");
     }
-  
-    if ( first.id === dessert.id) {
-      throw new ApplicationError("El mismo plato no se puede usar como Primero y Postre");
+
+    const price_with_taxes = await strapi.service(API_DAILY).includeTaxes(daily);
+    const currentTaxes = typeof PriceWithTaxes === "number" ? PriceWithTaxes : parseFloat(PriceWithTaxes) || 0;
+    const calculatedTaxes = typeof price_with_taxes === "number" ? price_with_taxes: parseFloat(price_with_taxes) || 0;
+
+    if (currentTaxes.toFixed(2) !== calculatedTaxes.toFixed(2)) {
+      try {
+        await strapi.documents(API_DAILY).update({
+          documentId,
+          data: { PriceWithTaxes: price_with_taxes },
+          state: { isCalculatedUpdate: true },
+        });
+        console.log("Actualización de PriceTaxes completada (afterUpdate)");
+      } catch (error) {
+        console.error("Error updating PriceTaxes:", error);
+      }
     }
-  
-    if (second.id === dessert.id) {
-      throw new ApplicationError("El mismo plato no se puede usar como MainCourse y Postre");
-    }
-  },
+  }
 };
