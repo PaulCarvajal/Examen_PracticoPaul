@@ -1,7 +1,3 @@
-//import {auxiliar_function} from '../../../../functionCreateUpdate.ts';  // Omite la extensión `.ts`
-
-import { compileStrapi } from "@strapi/strapi";
-import { after, before, beforeEach } from "node:test";
 
 const API_DAILY = "api::dailymenu.dailymenu";
 const API_DISH = "api::dish.dish";
@@ -9,22 +5,13 @@ const API_DISH = "api::dish.dish";
 const { errors } = require("@strapi/utils");
 const { ApplicationError } = errors;
 module.exports = {
-
-  
   async afterUpdate(event) {
     const { params, result } = event;
     if (event.state?.isCalculatedUpdate) return;
 
     if (event.params.data && event.params.data.publishedAt) {
-      console.warn(
-        "Publish action detected, skipping calculated update in afterUpdate."
-      );
       return;
     }
-
-    console.log("PARAMS ");
-    console.log(event);
-
     const daily = await strapi.documents(API_DAILY).findOne({
       documentId: result.documentId,
       populate: {
@@ -34,8 +21,6 @@ module.exports = {
       },
     });
     
-    
-
     if (!daily.first || !daily.second || !daily.dessert) {
       console.warn(
         "Missing dish information in menu, skipping calculated update."
@@ -45,14 +30,10 @@ module.exports = {
 
     const { SumPrecio, documentId, PriceWithTaxes } = daily;
     const sumPrice = await strapi.service(API_DAILY).priceDailyMenu(daily);
-    console.log("Después de update de TotalPriceDishes");
 
     const currentPrice = SumPrecio ?? 0;
     const calculatedPrice = sumPrice ?? 0;
-    
-    console.log("NO PUEDO MAS")
-    console.log(currentPrice)
-    console.log(calculatedPrice)
+
     if (currentPrice.toFixed(2) !== calculatedPrice.toFixed(2)) {
       try {
         await strapi.documents(API_DAILY).update({
@@ -60,9 +41,6 @@ module.exports = {
           data: { SumPrecio: sumPrice },
           state: { isCalculatedUpdate: true },
         });
-        console.log(
-          "Actualización de TotalPriceDishes completada (afterUpdate)"
-        );
       } catch (error) {console.error("Error updating TotalPriceDishes:", error);
       }
     }
@@ -78,9 +56,7 @@ module.exports = {
           data: { PriceWithTaxes: price_with_taxes },
           state: { isCalculatedUpdate: true },
         });
-        console.log("Actualización de PriceTaxes completada (afterUpdate)");
       } catch (error) {
-        console.error("Error updating PriceTaxes:", error);
       }
     }
 
@@ -88,10 +64,7 @@ module.exports = {
   },
   async beforeCreate(event) {
     const { params } = event;
-    //console.log("event", event);
-    //console.log("params", params);
     const validateType = await strapi.service(API_DAILY).validateType(params);
-    //console.log("validateType", validateType);
     if (!validateType) {
       throw new ApplicationError("This plate is not in the correct type");
     }
@@ -110,15 +83,8 @@ module.exports = {
     if (event.state?.isCalculatedUpdate) return;
 
     if (event.params.data && event.params.data.publishedAt) {
-      console.warn(
-        "Publish action detected, skipping calculated update in afterUpdate."
-      );
       return;
     }
-
-    console.log("PARAMS ");
-    console.log(event);
-
     const daily = await strapi.documents(API_DAILY).findOne({
       documentId: result.documentId,
       populate: {
@@ -128,25 +94,16 @@ module.exports = {
       },
     });
     
-    
-
     if (!daily.first || !daily.second || !daily.dessert) {
-      console.warn(
-        "Missing dish information in menu, skipping calculated update."
-      );
       return;
     }
 
     const { SumPrecio, documentId, PriceWithTaxes } = daily;
     const sumPrice = await strapi.service(API_DAILY).priceDailyMenu(daily);
-    console.log("Después de update de TotalPriceDishes");
 
     const currentPrice = SumPrecio ?? 0;
     const calculatedPrice = sumPrice ?? 0;
     
-    console.log("NO PUEDO MAS")
-    console.log(currentPrice)
-    console.log(calculatedPrice)
     if (currentPrice.toFixed(2) !== calculatedPrice.toFixed(2)) {
       try {
         await strapi.documents(API_DAILY).update({
@@ -154,9 +111,7 @@ module.exports = {
           data: { SumPrecio: sumPrice },
           state: { isCalculatedUpdate: true },
         });
-        console.log(
-          "Actualización de TotalPriceDishes completada (afterUpdate)"
-        );
+
       } catch (error) {console.error("Error updating TotalPriceDishes:", error);
       }
     }
@@ -172,9 +127,7 @@ module.exports = {
           data: { PriceWithTaxes: price_with_taxes },
           state: { isCalculatedUpdate: true },
         });
-        console.log("Actualización de PriceTaxes completada (afterUpdate)");
       } catch (error) {
-        console.error("Error updating PriceTaxes:", error);
       }
     }
   }
