@@ -1,8 +1,8 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * dailymenu controller
  */
-Object.defineProperty(exports, "__esModule", { value: true });
 const strapi_1 = require("@strapi/strapi");
 const API_DAILY = "api::dailymenu.dailymenu";
 const API_DISH = "api::dish.dish";
@@ -10,13 +10,11 @@ exports.default = strapi_1.factories.createCoreController(API_DAILY, () => ({
     async excludeAllergens(ctx) {
         const { nameAllergen } = ctx.params;
         const namesArray = nameAllergen.split(",").map((name) => name.trim());
-        console.log("NAME ALLERGEN");
-        console.log(nameAllergen);
         const dailyMenus = await strapi.documents(API_DAILY).findMany({
             populate: {
                 first: {
                     populate: {
-                        Allergen: true, // Esto incluye la relación, pero no filtra por nombre
+                        Allergen: true,
                     },
                 },
                 second: {
@@ -33,7 +31,7 @@ exports.default = strapi_1.factories.createCoreController(API_DAILY, () => ({
         });
         const functionAllergen = (dish) => {
             if (!dish || !dish.Allergen || dish.Allergen.length === 0) {
-                return false; // Si el plato no tiene alérgenos, lo consideramos seguro
+                return false;
             }
             for (let allergen of dish.Allergen) {
                 if (namesArray.includes(allergen.Name)) {
@@ -60,21 +58,18 @@ exports.default = strapi_1.factories.createCoreController(API_DAILY, () => ({
         const countMap = new Map();
         for (let menu of dailyMenus) {
             if (countMap.has(menu.first.Name)) {
-                //si la clave existe
                 countMap.set(menu.first.Name, countMap.get(menu.first.Name) + 1);
             }
             else {
                 countMap.set(menu.first.Name, 1);
             }
             if (countMap.has(menu.second.Name)) {
-                //si la clave existe
                 countMap.set(menu.second.Name, countMap.get(menu.second.Name) + 1);
             }
             else {
                 countMap.set(menu.second.Name, 1);
             }
             if (countMap.has(menu.dessert.Name)) {
-                //si la clave existe
                 countMap.set(menu.dessert.Name, countMap.get(menu.dessert.Name) + 1);
             }
             else {
@@ -82,25 +77,19 @@ exports.default = strapi_1.factories.createCoreController(API_DAILY, () => ({
             }
         }
         const dishes = await strapi.documents(API_DISH).findMany({});
-        const sortedDishes = [...countMap.entries()]
-            .sort((a, b) => b[1] - a[1]) // Ordenar de mayor a menor por la cantidad de repeticiones
-            .map(([name]) => {
-            // Buscar el plato real en dishesFromStrapi por el nombre
-            return dishes.find((dish) => dish.Name === name);
-        });
-        return ctx.send(sortedDishes);
-        /*
-        const countDish = (dish, menu) => {
-            for (let allergen of dish.Allergen) {
-                if(countMap.has(dish)){//si la clave existe
-                    countMap.set(dish, countMap.get(dish)! + 1)
-                } else{
-                    countMap.set(dish, 1)
-                }
+        const result = [];
+        for (let [name, count] of countMap.entries()) {
+            const dish = dishes.find((d) => d.Name === name);
+            if (dish) {
+                result.push({
+                    name: dish.Name,
+                    price: dish.Price,
+                    type: dish.Type,
+                    count: count,
+                });
             }
-            return menu;
-          };
-          */
-        console.log(countMap);
+        }
+        result.sort((a, b) => b.count - a.count);
+        return ctx.send(result);
     },
 }));

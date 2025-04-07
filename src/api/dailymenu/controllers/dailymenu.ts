@@ -34,7 +34,7 @@ export default factories.createCoreController(API_DAILY, () => ({
 
     const functionAllergen = (dish) => {
       if (!dish || !dish.Allergen || dish.Allergen.length === 0) {
-        return false; 
+        return false;
       }
       for (let allergen of dish.Allergen) {
         if (namesArray.includes(allergen.Name)) {
@@ -45,7 +45,9 @@ export default factories.createCoreController(API_DAILY, () => ({
     };
     const filteredMenus = dailyMenus.filter((menu) => {
       return (
-        !functionAllergen(menu.first) &&!functionAllergen(menu.second) &&!functionAllergen(menu.dessert)
+        !functionAllergen(menu.first) &&
+        !functionAllergen(menu.second) &&
+        !functionAllergen(menu.dessert)
       );
     });
 
@@ -84,11 +86,22 @@ export default factories.createCoreController(API_DAILY, () => ({
 
     const dishes = await strapi.documents(API_DISH).findMany({});
 
-    const sortedDishes = [...countMap.entries()]
-      .sort((a, b) => b[1] - a[1]) 
-      .map(([name]) => {
-        return dishes.find((dish) => dish.Name === name);
-      });
-    return ctx.send(sortedDishes);
+    const result = [];
+
+    for (let [name, count] of countMap.entries()) {
+      const dish = dishes.find((d) => d.Name === name);
+
+      if (dish) {
+        result.push({
+          name: dish.Name,
+          price: dish.Price,
+          type: dish.Type,
+          count: count,
+        });
+      }
+    }
+    result.sort((a, b) => b.count - a.count);
+
+    return ctx.send(result);
   },
 }));

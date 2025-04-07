@@ -24,7 +24,7 @@ export default factories.createCoreService(API_DAILY, () => ({
       total = total + dessert.Price;
     }
 
-    return total
+    return total;
   },
 
   includeTaxes: async function (dailymenu) {
@@ -32,8 +32,9 @@ export default factories.createCoreService(API_DAILY, () => ({
     const taxe = Price * taxes;
     return taxe.toFixed(2);
   },
-  validateType: async function(params) {
-    const checkPlateType = async (dish, type) => {
+  correctType: async function (params) {
+    const typeDish = async (dish, type) => {
+     
       if (dish && Array.isArray(dish.connect) && dish.connect.length > 0) {
         const dishSelect = await strapi.db.query(API_DISH).findOne({
           where: { id: dish.connect.map((item) => item.id) },
@@ -41,17 +42,17 @@ export default factories.createCoreService(API_DAILY, () => ({
         
         return dishSelect.Type === type;
       }
-      return true;
+      return true
     };
-    const isValidFirst = await checkPlateType(params.data.first, "First");
+    const isValidFirst = await typeDish(params.data.first, "First");
     if (!isValidFirst) return false;
-    const isValidSecond = await checkPlateType(params.data.second, "Second");
+    const isValidSecond = await typeDish(params.data.second, "Second");
     if (!isValidSecond) return false;
-    const isValidDessert = await checkPlateType(params.data.dessert,"Dessert");
+    const isValidDessert = await typeDish(params.data.dessert,"Dessert");
     if (!isValidDessert)
       {return false;}
     else{
       return true;
     }
-  }
+  },
 }));

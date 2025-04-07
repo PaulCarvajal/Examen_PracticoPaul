@@ -12,11 +12,13 @@
   },
   "attributes": {
     "Name": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "Price": {
       "type": "decimal",
-      "min": 0
+      "min": 0,
+      "required": true
     },
     "Photo": {
       "type": "media",
@@ -29,7 +31,8 @@
     "Allergen": {
       "type": "component",
       "repeatable": true,
-      "component": "allergen.allergen"
+      "component": "allergen.allergen",
+      "required": true
     },
     "Type": {
       "type": "enumeration",
@@ -37,7 +40,9 @@
         "First",
         "Second",
         "Dessert"
-      ]
+      ],
+      "required": true,
+      "default": "First"
     }
   }
 }

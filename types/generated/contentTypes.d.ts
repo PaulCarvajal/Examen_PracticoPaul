@@ -384,7 +384,7 @@ export interface ApiDailymenuDailymenu extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    Day: Schema.Attribute.String;
+    Day: Schema.Attribute.String & Schema.Attribute.Required;
     dessert: Schema.Attribute.Relation<'oneToOne', 'api::dish.dish'>;
     first: Schema.Attribute.Relation<'oneToOne', 'api::dish.dish'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -430,16 +430,18 @@ export interface ApiDishDish extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    Allergen: Schema.Attribute.Component<'allergen.allergen', true>;
+    Allergen: Schema.Attribute.Component<'allergen.allergen', true> &
+      Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::dish.dish'> &
       Schema.Attribute.Private;
-    Name: Schema.Attribute.String;
+    Name: Schema.Attribute.String & Schema.Attribute.Required;
     Photo: Schema.Attribute.Media<'images'>;
     Price: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<
         {
           min: 0;
@@ -447,7 +449,9 @@ export interface ApiDishDish extends Struct.CollectionTypeSchema {
         number
       >;
     publishedAt: Schema.Attribute.DateTime;
-    Type: Schema.Attribute.Enumeration<['First', 'Second', 'Dessert']>;
+    Type: Schema.Attribute.Enumeration<['First', 'Second', 'Dessert']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'First'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
